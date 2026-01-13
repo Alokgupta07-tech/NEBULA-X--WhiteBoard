@@ -99,6 +99,11 @@ export function getTheme(themeType: ThemeType): ThemeConfig {
 }
 
 export function applyTheme(themeType: ThemeType) {
+  // Only apply theme in browser environment
+  if (typeof document === 'undefined') {
+    return;
+  }
+
   const theme = getTheme(themeType);
   const root = document.documentElement;
 

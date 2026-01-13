@@ -21,41 +21,55 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
 
-    const savedTheme = localStorage.getItem('nebulaboard-theme') as ThemeType | null;
-    const savedDarkMode = localStorage.getItem('nebulaboard-dark') === 'true';
+    // Only access localStorage on the client
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('nebulaboard-theme') as ThemeType | null;
+      const savedDarkMode = localStorage.getItem('nebulaboard-dark') === 'true';
 
-    if (savedTheme) {
-      setThemeState(savedTheme);
-      applyTheme(savedTheme);
-    } else {
-      applyTheme('cosmic-glass');
-    }
+      if (savedTheme) {
+        setThemeState(savedTheme);
+        applyTheme(savedTheme);
+      } else {
+        applyTheme('cosmic-glass');
+      }
 
-    setIsDarkState(savedDarkMode);
+      setIsDarkState(savedDarkMode);
 
-    if (savedDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+      if (savedDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, []);
 
   const setTheme = (newTheme: ThemeType) => {
     setThemeState(newTheme);
     applyTheme(newTheme);
-    localStorage.setItem('nebulaboard-theme', newTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nebulaboard-theme', newTheme);
+    }
   };
 
   const setIsDark = (newIsDark: boolean) => {
     setIsDarkState(newIsDark);
-    localStorage.setItem('nebulaboard-dark', newIsDark.toString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nebulaboard-dark', newIsDark.toString());
+    }
 
-    if (newIsDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    if (typeof document !== 'undefined') {
+      if (newIsDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   };
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, isDark, setIsDark }}>
